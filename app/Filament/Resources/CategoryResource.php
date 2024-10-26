@@ -3,7 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CategoryResource\Pages;
-use App\Filament\Resources\CategoryResource\RelationManagers;
+use App\Filament\Resources\CategoryResource\RelationManagers\ProductsRelationManager;
 use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -12,8 +12,6 @@ use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
 
 
@@ -46,12 +44,12 @@ class CategoryResource extends Resource
                                     }),
                                 Forms\Components\TextInput::make('slug')
                                     ->required()
-                                    ->maxLength(255)
+                                    ->disabled()
+                                    ->dehydrated()
+                                    // ->maxLength(length: 255)
                                     ->unique(ignoreRecord: true),
-                                // Forms\Components\TextInput::make('parent_id')
-                                //     ->required()
-                                //     ->maxLength(255),
-                                
+                                Forms\Components\Select::make('parent_id')
+                                    ->options(Category::all()->pluck('name', 'id')),                            
                                 Forms\Components\MarkdownEditor::make('description')
                                     ->required(),
                             ]),
@@ -84,6 +82,7 @@ class CategoryResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name'),
                 Tables\Columns\TextColumn::make('slug'),
+                Tables\Columns\TextColumn::make('parent.name')->label('Parent Category'),
                 Tables\Columns\ImageColumn::make('image')->size(50),
                 Tables\Columns\IconColumn::make('status')->boolean(),
             ])
@@ -107,7 +106,7 @@ class CategoryResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ProductsRelationManager::class,
         ];
     }
 

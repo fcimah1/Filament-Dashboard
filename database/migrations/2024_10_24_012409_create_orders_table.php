@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -15,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string('order_number')->unique();
             $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
-            $table->date('order_date');
+            $table->date('order_date')->default(Carbon::now());
             $table->enum('status',['pending','processing','completed','declined'])->default('pending');
             $table->decimal('discount')->nullable();
             $table->decimal('shipping_cost')->nullable();

@@ -15,5 +15,11 @@ class Brand extends Model
         'primary_color',
         'secondary_color',
     ];
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
+    
     
 }
