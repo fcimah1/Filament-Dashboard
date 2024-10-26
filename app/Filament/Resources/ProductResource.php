@@ -27,10 +27,18 @@ class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
+    protected static ?string $activeNavigationIcon = 'heroicon-o-check-badge';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
     protected static ?string $navigationIcon = 'heroicon-o-bolt';
 
     protected static ?string $navigationGroup = 'Shop';
     protected static ?int $navigationSort = 2;
+
+    protected static int $globalSearchResultsLimit = 20;
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -47,6 +55,12 @@ class ProductResource extends Resource
             'Price' => $record->price,
         ];
     }
+
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        return parent::getGlobalSearchEloquentQuery()->with(['brand', 'category']);
+    }
+
 
     public static function form(Form $form): Form
     {
@@ -108,7 +122,7 @@ class ProductResource extends Resource
                         Forms\Components\Section::make('Product Status')
                             ->schema([
                                 Toggle::make('available')
-                                    ->label('Availablibilty')
+                                    ->label('Availablilty')
                                     ->helperText('enable/disable product availability')
                                     ->default(true),
                                 Toggle::make('featured')

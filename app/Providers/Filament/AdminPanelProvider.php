@@ -2,14 +2,18 @@
 
 namespace App\Providers\Filament;
 
+use Database\Factories\NavMenuFactory;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
+use Illuminate\Container\Attributes\Auth;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -20,6 +24,7 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
 {
+    
     public function panel(Panel $panel): Panel
     {
         
@@ -29,11 +34,36 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin-panel')
             ->login()
             ->darkMode()
+            ->globalSearchKeyBindings(['command+k','ctrl+k'])
             ->sidebarCollapsibleOnDesktop()
+            ->navigationItems([
+                NavigationItem::make('Blog')
+                    ->url('blog')
+                    ->icon('heroicon-o-pencil-square')
+                    ->group('External')
+                    ->sort(1),
+                    // ->visible(condition: fn(): bool => auth()->user()->can('view blog')),
+                NavigationItem::make('Settings')
+                    ->url('settings')
+                    ->icon('heroicon-o-cog')
+                    ->group('External')
+                    ->sort(2),
+                    // ->visible(fn(): bool => auth()->user()->can('view settings')),
+            ])
+            ->userMenuItems([
+                MenuItem::make()
+                    ->label('Profile')
+                    ->icon('heroicon-o-user'),
+                MenuItem::make()
+                    ->label('Settings')
+                    ->icon('heroicon-o-cog-6-tooth'),
+                'logout' => MenuItem::make()->label('Log Out')
+            ])
             ->favicon(asset('logo.png'))
             ->colors([
                 'primary' => Color::Yellow,
             ])
+            ->breadcrumbs(false)
             ->font('poppins')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
