@@ -3,8 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Enums\OrderTypeEnum;
+use App\Exports\OrderExport;
 use App\Filament\Resources\OrderResource\Pages;
-use App\Filament\Resources\OrderResource\RelationManagers;
 use App\Models\Order;
 use App\Models\Product;
 use Filament\Forms;
@@ -14,11 +14,14 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Str;
-use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Tables\Actions\Action;
+use Maatwebsite\Excel\Facades\Excel;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+
+
 class OrderResource extends Resource
 {
     protected static ?string $model = Order::class;
@@ -37,7 +40,6 @@ class OrderResource extends Resource
     {
         return static::getModel()::where('status', OrderTypeEnum::PROCESSING->value)->count() >10 ? 'warning' : 'success';
     }
-
 
     public static function form(Form $form): Form
     {
@@ -120,9 +122,9 @@ class OrderResource extends Resource
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('customer.name')
-                ->searchable()
-                ->toggleable()    
-                ->sortable(),
+                    ->searchable()
+                    ->toggleable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('status')
                     ->sortable()
                     ->toggleable()
@@ -132,17 +134,49 @@ class OrderResource extends Resource
                     ->date()
                     ->sortable()
             ])
+            // ->headerActions([
+            //     Action::make('exportButton')
+            //         ->label('Export Orders')
+            //         ->color('success')
+            //         ->icon('heroicon-o-arrow-down')
+            //         ->action(function () {
+            //             $data = [];
+            //             $orders = Order::all();
+            //             foreach($orders as $order){
+            //                 $data[] = [
+            //                     $order->order_number,
+            //                     $order->customer->name,
+            //                     $order->customer->email,
+            //                     $order->status,
+            //                     $order->order_date
+            //                 ];
+            //             }
+            //             return Excel::download(new OrderExport($data, env('APP_LOCALE')), 'orders.xlsx');      
+            //         })
+            // ])
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make(Order::all())->withColumns([
+                            Column::make('order_number')->heading('Order Number')->width(20),
+                            Column::make('customer.name')->heading('Customer Name')->width(20),
+                            Column::make('shipping_cost')->heading('Shipping Cost')->width(20),
+                            Column::make('status')->heading('Status')->width(20),
+                            Column::make('created_at')->heading('Order Date')->width(20),
+                        ])->withFilename(date('Y-m-d') . ' - order'),
+                    ])
+                ])
             ]);
+            
     }
 
     public static function getRelations(): array

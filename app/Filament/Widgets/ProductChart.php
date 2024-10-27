@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 
 class ProductChart extends ChartWidget
 {
-    protected static ?string $heading = 'Chart';
+    protected static ?string $heading = 'Products Chart';
 
     // sort 
     protected static ?int $sort = 1;
