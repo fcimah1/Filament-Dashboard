@@ -22,6 +22,10 @@ use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Tables\Filters\TernaryFilter;
 use Illuminate\Database\Eloquent\Model;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+
 
 class ProductResource extends Resource
 {
@@ -218,6 +222,20 @@ class ProductResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make(Product::all())->withColumns([
+                            Column::make('id')->heading('ID')->width(20),
+                            Column::make('name')->heading('Product Name')->width(20),
+                            Column::make('category.name')->heading('Category')->width(20),
+                            Column::make('brand.name')->heading('Brand')->width(20),
+                            Column::make('price')->heading('Price')->width(20),
+                            Column::make('quantity')->heading('Quantity')->width(20),
+                            Column::make('description')->heading('Description')->width(20),
+                            Column::make('featured')->heading('Featured')->width(20)->formatStateUsing(function ($state) {
+                                return $state ? 'Yes' : 'No';
+                            }),
+                        ])->withFilename(date('Y-m-d') . ' - products'),
+                    ]),
                 ]),
             ]);
     }
